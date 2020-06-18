@@ -1,0 +1,11 @@
+{
+  "name": "epii-websocket-p2p-client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/epii-socket-client.js",
+  "scripts": {
+    
+  },
+  "author": "MrRen",
+  "license": "ISC"
+}

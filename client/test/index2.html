@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<body>
+    <script src="../dist/epii-socket-client.js"></script>
+    <script>
+        var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_2", {
+            name: "李四"
+        });
+   
+
+        function test() {
+            test_server.callServer("user_1", "server1", {
+                a: 1,
+                vd: 2
+            }, function (ret) {
+                console.log(ret)
+            });
+            test_server.callServer("user_1", "server1", {
+                a: 1,
+                vd: 2
+            }, function (ret) {
+                console.log(ret)
+            });
+            test_server.callServer("user_1", "server1", {
+                a: 1,
+                vd: 2
+            }, function (ret) {
+                console.log(ret)
+            });
+            test_server.callServer("user_1", "server1", {
+                a: 1,
+                vd: 2
+            }, function (ret) {
+                console.log(ret)
+            });
+            test_server.callServer("user_1", "server1", {
+                a: 1,
+                vd: 2
+            }, function (ret) {
+                console.log(ret)
+            });
+            // test_server.callServer("user_1", "fangshenfenzheng", {
+            //   d:6
+            // }, function (ret) {
+            //     console.log(ret)
+            // })
+           
+        }
+    </script>
+    <button onclick="test()">call user 1 </button>
+
+</body>
+
+</html>
