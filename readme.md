@@ -1,5 +1,5 @@
 ```
-  <script src="../dist/epii-socket-client.js"></script>
+  <script src="../dist/epii-websocket-p2p.js"></script>
     <script>
         var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_1", {
             name: "张三"

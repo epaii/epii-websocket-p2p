@@ -2,7 +2,7 @@
   "name": "epii-websocket-p2p-client",
   "version": "0.0.2",
   "description": "",
-  "main": "dist/epii-socket-client.js",
+  "main": "dist/epii-websocket-p2p.js",
   "scripts": {
     
   },
