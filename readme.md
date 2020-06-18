@@ -1,7 +1,5 @@
-<!DOCTYPE html>
-
-<body>
-    <script src="../dist/epii-websocket-p2p.js"></script>
+```
+  <script src="../dist/epii-socket-client.js"></script>
     <script>
         var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_1", {
             name: "张三"
@@ -23,10 +21,13 @@
             })
 
         });
-    </script>
-    <button onclick="test()">zhuce</button>
-    <button onclick="test1()">test</button>
-    <button onclick="logout()">logout</button>
-</body>
 
-</html>
+         test_server.callServer("user_1", "server1", {
+                a: 1,
+                vd: 2
+            }, function (ret) {
+                console.log(ret)
+            });
+
+    </script>
+```

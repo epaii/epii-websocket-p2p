@@ -4,7 +4,7 @@ module.exports = {
     entry: __dirname + "/src/websocket.js",
     output: {
         path: __dirname + "/dist",
-        filename: "epii-socket-client.js",
+        filename: "epii-websocket-p2p.js",
         library: "WebSocketP2P",
         libraryTarget: "umd",
         globalObject: 'this'
