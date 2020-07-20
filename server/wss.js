@@ -3,6 +3,7 @@ const server = require("./src/server.js");
 
 const httpServ = require('https');
 const config = require(__dirname+"/config.json");
+const fs = require("fs")
 // 创建request请求监听器
 const processRequest = (req, res) => {
     res.writeHead(200);
