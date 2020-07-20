@@ -3,14 +3,17 @@
 <body>
     <script src="../dist/epii-websocket-p2p.js"></script>
     <script>
-        var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_1", {
+        // var test_server = new WebSocketP2P("ws://192.168.16.224:4897", "user_1", {
+        //     name: "张三"
+        // });
+        var test_server = new WebSocketP2P("ws://139.219.0.61:4897", "user_1", {
             name: "张三"
         });
         test_server.ready(function () {
             test_server.regServer("server1", function (data, callback) {
-                setTimeout(() => {
+              //  setTimeout(() => {
                     callback({"code":Math.random()})
-                }, 2000);
+              //  }, 2000);
                   
             })
 
@@ -23,10 +26,10 @@
             })
 
         });
+
+      
     </script>
-    <button onclick="test()">zhuce</button>
-    <button onclick="test1()">test</button>
-    <button onclick="logout()">logout</button>
+ 
 </body>
 
 </html>

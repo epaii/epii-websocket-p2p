@@ -1,0 +1,6 @@
+{
+    "wss":true,
+    "port":4897,
+    "key":"4232379_websocket.wszx.cc.key",
+    "cert":"4232379_websocket.wszx.cc.pem"
+}
