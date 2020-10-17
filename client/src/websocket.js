@@ -20,7 +20,7 @@ function _doTask() {
     }
 }
 
-
+ 
 class epii_websocket {
     constructor(url, epii_id, info = {}) {
         this.ready_callbacks = [];
@@ -38,8 +38,15 @@ class epii_websocket {
         return l;
     }
     _start() {
+        
         this.is_ready = false;
-        this.ws = new WebSocket(this.url);
+     
+        if(typeof WebSocket === "undefined"){
+            this.ws =  new  (require("ws"))(this.url); 
+        }else{
+            this.ws = new WebSocket(this.url);   
+        }
+        
         this.ws.onclose = () => {
             this._start();
         }

@@ -7,10 +7,10 @@ module.exports = {
         filename: "epii-websocket-p2p.js",
         library: "WebSocketP2P",
         libraryTarget: "umd",
-        globalObject: 'this'
+        globalObject: 'this' 
     },
  
     externals: {
-
+        ws:"ws"
     }
 };

@@ -1,11 +1,12 @@
 {
   "name": "epii-websocket-p2p",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "dist/epii-websocket-p2p.js",
-  "scripts": {
-    
-  },
+  "scripts": {},
   "author": "MrRen",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^7.3.1"
+  }
 }

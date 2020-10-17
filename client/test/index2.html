@@ -3,10 +3,10 @@
 <body>
     <script src="../dist/epii-websocket-p2p.js"></script>
     <script>
-        var test_server = new WebSocketP2P("wss://websocket.wszx.cc:4897", "user_2", {
+        var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_2", {
             name: "李四"
         });
-   
+
 
         function test() {
             test_server.callServer("user_1", "server1", {
@@ -44,12 +44,72 @@
             // }, function (ret) {
             //     console.log(ret)
             // })
-           
+
         }
-        
+
+        function ab2str(buf) {
+            return String.fromCharCode.apply(null, new Uint16Array(buf));
+        }
+
+        function test_file() {
+            if (document.getElementById("upload_file").files.length == 0) return;
+            var file = document.getElementById("upload_file").files[0];
+            var reader = new FileReader();
+            reader.onload = function () {
+                var string = reader.result;
+                console.log(file)
+                var chunk_size = 800000;
+                var send_list = [];
+                var a_size = Math.ceil(string.length / chunk_size);
+                test_server.callServer("user_1", "uploadfilestart", {
+                    size:string.length
+                }, function (ret) {
+
+                    for (var i = 0; i < a_size; i++) {
+
+                        send_list[i] = string.substr(i * chunk_size, Math.min(chunk_size, string.length -
+                            i * chunk_size));
+
+                        //ret.fileId    
+
+                    }
+
+                    var send_index = 0;
+                    var sendfile = function () {
+                        test_server.callServer("user_1", "uploadfileing", {
+                            id: ret.fileId,
+                            body: send_list[send_index]
+                        }, function (ret1) {
+                            console.log(ret1);
+                            send_index++;
+                            if (send_index < send_list.length) {
+                                sendfile();
+                            } else {
+                                test_server.callServer("user_1", "uploadfileend", {
+                                    id: ret.fileId,
+                                    
+                                }, function (ret2) {
+                                    
+
+                                });
+                            }
+
+                        });
+                    }
+                    sendfile();
+
+
+                });
+
+
+
+            };
+            reader.readAsDataURL(file);
+        }
     </script>
     <button onclick="test()">call user 1 </button>
-
+    <input name="upload_file" id="upload_file" type="file">
+    <button onclick="test_file()">file_test </button>
 </body>
 
 </html>
