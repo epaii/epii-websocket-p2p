@@ -46,12 +46,13 @@ class epii_websocket {
         }else{
             this.ws = new WebSocket(this.url);   
         }
-        
+ 
         this.ws.onclose = () => {
             this._start();
         }
         this.ws.onopen = () => {
             this.send({ do: "login", id: this.epii_id, info: this.epii_info });
+            this.is_ready = true;
             this.ready_callbacks.forEach(cb => cb());
         };
         this.ws.onmessage = (e) => {
@@ -75,6 +76,9 @@ class epii_websocket {
     }
     callServer(id, name, data, cb) {
         this.send({ do: "callServer", id: id, name: name, data: data, cb: this._pushcb(cb) });
+    }
+    ping(id,cb){
+        this.callServer(id,"__ping",{__ping:1}, cb)
     }
     __callServer(data) {
         if (this.epii_servers.hasOwnProperty(data.name)) {

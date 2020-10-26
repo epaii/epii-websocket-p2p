@@ -6,7 +6,7 @@ Array.prototype.remove = function (val) {
         this.splice(index, 1);
     }
 };
-let connections =[];
+let connections = [];
 let handler = {
     connections: {},
     login(ws, data) {
@@ -33,15 +33,20 @@ let handler = {
 
     },
     callServer(ws, data) {
-     
+
         if (data.hasOwnProperty("id") && data.hasOwnProperty("name")) {
+
             let id = data.id;
             let server_name = data.name;
-            let tows = this._findWsFormServer(id,server_name);
-           
-            if(tows){
-        
-                let string = JSON.stringify({do:"__callServer",name:server_name,data:data.data,client:this.connections[id].info,connect:ws.epii_connection_index,cb:data.cb});
+            let ping = (server_name == "__ping");
+            if (ping) {
+                let ok = this.connections.hasOwnProperty(id) && (this.connections[id].ws.length > 0);
+                this._callback(ws, data.cb, { code: ok ? 1 : 0 })
+                return;
+            }
+            let tows = this._findWsFormServer(id, server_name);
+            if (tows && tows.epii_is_ok) {
+                let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb: data.cb });
                 tows.send(string);
             }
         }
@@ -49,29 +54,28 @@ let handler = {
     reponseCall(ws, data) {
         if (data.hasOwnProperty("connect") && data.hasOwnProperty("cb") && connections.hasOwnProperty(data["connect"])) {
             let tows = connections[data["connect"]];
-            
-            if(tows && tows.epii_is_ok){
-                this._callback(tows,data.cb,data.data);
+
+            if (tows && tows.epii_is_ok) {
+                this._callback(tows, data.cb, data.data);
             }
         }
     },
     regServer(ws, data) {
-       
+
         ws.epii_servers.push(data.name);
     },
     test(ws, data) {
         console.log("testst:" + ws.epii_id);
     },
     showinfo() {
-       // console.log(this.connections);
+        // console.log(this.connections);
     },
-    _callback(ws,cb,data){
-        ws.send(JSON.stringify({do:"__callback",cb:cb,data:data}));
+    _callback(ws, cb, data) {
+        ws.send(JSON.stringify({ do: "__callback", cb: cb, data: data }));
     }
     ,
     _findWsFormServer(epii_id, name) {
-
-        if (this.connections.hasOwnProperty(epii_id) && this.connections[epii_id].ws.length > 0) {
+        if (this.connections.hasOwnProperty(epii_id) && (this.connections[epii_id].ws.length > 0)) {
             let l = this.connections[epii_id].ws.length;
             let i = l - 1;
             for (; i >= 0; i++) {
@@ -87,14 +91,14 @@ let handler = {
 function start(options) {
 
     const wss = new WebSocketServer(options)
-    wss.on('connection', (ws) => {     
+    wss.on('connection', (ws) => {
         ws.epii_is_ok = true;
         ws.epii_servers = [];
         ws.epii_connection_index = connections.length;
         connections.push(ws);
         ws.on('message', function (message) {
             try {
-               
+
                 const data = JSON.parse(message);
                 //console.log(data)
                 if (data.hasOwnProperty("do") && handler.hasOwnProperty(data.do)) {
