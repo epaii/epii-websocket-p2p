@@ -69,6 +69,9 @@ class epii_websocket {
             }
 
         }
+        this.ws.onerror = (e)=> {
+                
+        }
     }
     regServer(name, handler) {
         this.epii_servers[name] = handler;
