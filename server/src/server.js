@@ -44,11 +44,26 @@ let handler = {
                 this._callback(ws, data.cb, { code: ok ? 1 : 0 })
                 return;
             }
-            let tows = this._findWsFormServer(id, server_name);
+             
+            let towses = this._findWsFormServer(id, server_name);
+           
+            if (data.hasOwnProperty("more") && (data.more - 1 === 0)) {
+                towses.forEach(tows => {
+                    if (tows && tows.epii_is_ok) {
+                        let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb:-1});
+                        tows.send(string);
+                    }
+                })
+                this._callback(ws, data.cb, {num:towses.length});
+                return;
+            }
+            let tows = towses[0];
             if (tows && tows.epii_is_ok) {
                 let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb: data.cb });
                 tows.send(string);
             }
+
+
         }
     },
     reponseCall(ws, data) {
@@ -75,16 +90,18 @@ let handler = {
     }
     ,
     _findWsFormServer(epii_id, name) {
+        let out = [];
         if (this.connections.hasOwnProperty(epii_id) && (this.connections[epii_id].ws.length > 0)) {
             let l = this.connections[epii_id].ws.length;
             let i = l - 1;
-            for (; i >= 0; i++) {
+          
+            for (; i >= 0; i--) {
                 if (this.connections[epii_id].ws[i].epii_servers.includes(name)) {
-                    return this.connections[epii_id].ws[i];
+                    out.push(this.connections[epii_id].ws[i]);
                 }
             }
         }
-        return null;
+        return out
     }
 
 }

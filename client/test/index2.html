@@ -11,7 +11,14 @@
                 console.log(ret)
             });
         }
-
+        function send() {
+            test_server.sendTo("user_1", "server1", {
+                a: 1,
+                vd: 2
+            }, function (ret) {
+                console.log(ret)
+            });
+        }
         function test() {
             test_server.callServer("user_1", "server1", {
                 a: 1,
@@ -113,6 +120,7 @@
     </script>
       <button onclick="ping()">ping user 1 </button>
     <button onclick="test()">call user 1 </button>
+    <button onclick="send()">send user 1 </button>
     <input name="upload_file" id="upload_file" type="file">
     <button onclick="test_file()">file_test </button>
 </body>

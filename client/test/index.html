@@ -9,6 +9,7 @@
       
         test_server.ready(function () {
             test_server.regServer("server1", function (data, callback) {
+                console.log("isme")
                 //  setTimeout(() => {
                 callback({
                     "code": Math.random()

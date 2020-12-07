@@ -80,6 +80,9 @@ class epii_websocket {
     callServer(id, name, data, cb) {
         this.send({ do: "callServer", id: id, name: name, data: data, cb: this._pushcb(cb) });
     }
+    sendTo(id, name, data, cb) {
+        this.send({ do: "callServer", id: id, name: name,more:1, data: data, cb: this._pushcb(cb) });
+    }
     ping(id,cb){
         this.callServer(id,"__ping",{__ping:1}, cb)
     }
