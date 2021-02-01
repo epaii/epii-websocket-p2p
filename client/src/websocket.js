@@ -34,9 +34,23 @@ class epii_websocket {
               this._start();
         }
         this.ws.onopen = () => {
-            this.send({ do: "login", id: this.epii_id, info: this.epii_info });
-            this.is_ready = true;
-            this.ready_callbacks.forEach(cb => cb());
+            let login = ()=>{
+                this.send({ do: "login", id: this.epii_id, info: this.epii_info });
+                this.is_ready = true;
+                this.ready_callbacks.forEach(cb => cb());
+            }
+            if(this.epii_info.hasOwnProperty("__unique__") && ( this.epii_info.__unique__===1 ) ){
+                this.ping(this.epii_id,(ret)=>{
+                   if(ret.code-1==0)
+                   {
+                      if(this.__on_error) this.__on_error({msg:"exist id "+this.epii_id})      ; 
+                   }else{
+                    login();
+                   }
+                })   
+           }else{
+               login();
+           }
         };
         this.ws.onmessage = (e) => {
             try {
