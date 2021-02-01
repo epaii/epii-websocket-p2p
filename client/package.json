@@ -1,6 +1,6 @@
 {
   "name": "epii-websocket-p2p",
-  "version": "0.0.6",
+  "version": "0.1.1",
   "description": "",
   "main": "dist/epii-websocket-p2p.js",
   "scripts": {},

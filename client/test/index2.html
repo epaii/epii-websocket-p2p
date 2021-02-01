@@ -3,13 +3,16 @@
 <body>
     <script src="../dist/epii-websocket-p2p.js"></script>
     <script>
-        var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_2", {
+        var test_server = new WebSocketP2P("wss://websocket.wszx.cc:4897", "user_2", {
             name: "李四"
         });
         function ping(){
             test_server.ping("user_1", function (ret) {
                 console.log(ret)
             });
+        }
+        function exit(){
+            test_server.exit();
         }
         function send() {
             test_server.sendTo("user_1", "server1", {
@@ -19,6 +22,16 @@
                 console.log(ret)
             });
         }
+
+        function test3() {
+            test_server.callServer("user_3", "test", {
+                a: 1,
+                vd: 2
+            }, function (ret) {
+                console.log(ret)
+            });
+        }
+
         function test() {
             test_server.callServer("user_1", "server1", {
                 a: 1,
@@ -120,9 +133,11 @@
     </script>
       <button onclick="ping()">ping user 1 </button>
     <button onclick="test()">call user 1 </button>
+    <button onclick="test3()">call user 3 </button>
     <button onclick="send()">send user 1 </button>
     <input name="upload_file" id="upload_file" type="file">
     <button onclick="test_file()">file_test </button>
+    <button onclick="exit()">退出 </button>
 </body>
 
 </html>

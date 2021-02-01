@@ -1,6 +1,6 @@
 const path = require("path")
 module.exports = {
-   // mode: "development",
+    //mode: "development",
     entry: __dirname + "/src/websocket.js",
     output: {
         path: __dirname + "/dist",
