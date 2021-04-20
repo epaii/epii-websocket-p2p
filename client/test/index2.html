@@ -3,8 +3,17 @@
 <body>
     <script src="../dist/epii-websocket-p2p.js"></script>
     <script>
-        var test_server = new WebSocketP2P("wss://websocket.wszx.cc:4897", "user_2", {
+        var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_2", {
+            unique:1,
             name: "李四"
+        });
+
+        test_server.ready(()=>{
+            console.log("ready")
+        });
+
+        test_server.onError(function(data){
+            alert(JSON.stringify(data))
         });
         function ping(){
             test_server.ping("user_1", function (ret) {

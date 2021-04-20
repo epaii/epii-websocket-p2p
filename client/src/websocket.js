@@ -34,9 +34,16 @@ class epii_websocket {
               this._start();
         }
         this.ws.onopen = () => {
-            this.send({ do: "login", id: this.epii_id, info: this.epii_info });
-            this.is_ready = true;
-            this.ready_callbacks.forEach(cb => cb());
+            this.send({ do: "login", id: this.epii_id, unique:this.epii_info["unique"]?1:0,info: this.epii_info,cb:this._pushcb((data)=>{
+                if(data.code-1==0){
+                     this.is_ready = true;
+                     this.ready_callbacks.forEach(cb => cb());
+                }else{
+                    if(this.__on_error) this.__on_error({msg:"it is has exist username "+this.epii_id+" "}) ;  
+                }
+               
+            }) });
+           
         };
         this.ws.onmessage = (e) => {
             try {

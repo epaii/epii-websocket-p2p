@@ -13,11 +13,20 @@ let handler = {
         if (!this.connections.hasOwnProperty(data.id)) {
             this.connections[data.id] = { id: data.id, info: data.info, ws: [] };
         }
+        if(data.hasOwnProperty("unique") && (data.unique-1===0)){
+            if(this.connections[data.id].ws.length > 0){
+                this._callback(ws, data.cb, { code: 0 })
+                return;
+            }
+        }
+
         if (this.connections[data.id].ws.indexOf(ws) == -1) {
             ws.epii_id = data.id;
             ws.epii_index = this.connections[data.id].ws.length;
             this.connections[data.id].ws.push(ws);
         }
+        if(data.hasOwnProperty("cb"))
+            this._callback(ws, data.cb, { code: 1 })
 
     },
     logout(ws) {
