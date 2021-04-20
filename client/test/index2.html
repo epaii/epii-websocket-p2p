@@ -15,6 +15,9 @@
         test_server.onError(function(data){
             alert(JSON.stringify(data))
         });
+        test_server.onUserAvailable("user_1",(data)=>{
+            console.log(data)
+        })
         function ping(){
             test_server.ping("user_1", function (ret) {
                 console.log(ret)

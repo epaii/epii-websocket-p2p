@@ -9,6 +9,7 @@ Array.prototype.remove = function (val) {
 let connections = [];
 let handler = {
     connections: {},
+    onUserAvailable_cbs:{},
     login(ws, data) {
         if (!this.connections.hasOwnProperty(data.id)) {
             this.connections[data.id] = { id: data.id, info: data.info, ws: [] };
@@ -28,6 +29,9 @@ let handler = {
         if(data.hasOwnProperty("cb"))
             this._callback(ws, data.cb, { code: 1 })
 
+        this.__onUserAvailable(data.id);
+
+
     },
     logout(ws) {
         if (ws.hasOwnProperty("epii_id")) {
@@ -38,7 +42,7 @@ let handler = {
                 delete this.connections[ws.epii_id];
             }
         }
-
+        this.__onUserAvailable(ws.epii_id);
 
     },
     callServer(ws, data) {
@@ -94,6 +98,40 @@ let handler = {
     showinfo() {
         // console.log(this.connections);
     },
+    onUserAvailable(ws,data){
+        if(!this.onUserAvailable_cbs[data.toid]){
+            this.onUserAvailable_cbs[data.toid] = [];
+        }
+        if(!this.onUserAvailable_cbs[data.toid].includes(data.id+"")){
+            this.onUserAvailable_cbs[data.toid].push(data.id+"")
+        }
+        if (this.connections.hasOwnProperty(data.toid) && (this.connections[data.toid].ws.length > 0)) {
+            let string = JSON.stringify({ do: "__onUserAvailable", id: data.toid, code:1  });
+            ws.send(string);
+        }
+    },
+    __onUserAvailable(epii_id){
+        if(!this.onUserAvailable_cbs[epii_id]) return;
+
+        let code = -1;
+        if (this.connections.hasOwnProperty(epii_id) && (this.connections[epii_id].ws.length === 1)){
+            code = 1;
+        }else if(!this.connections[epii_id]){
+            code=0;
+        }
+        if(code!==-1){
+          this.onUserAvailable_cbs[epii_id].forEach( (name)=>{
+                let towses = this._findWsFormServer(name,null);
+                towses.forEach(tows => {
+                    if (tows && tows.epii_is_ok) {
+                        let string = JSON.stringify({ do: "__onUserAvailable", id: epii_id, code:code});
+                        tows.send(string);
+                    }
+                })
+          });
+        }
+    },
+
     _callback(ws, cb, data) {
         ws.send(JSON.stringify({ do: "__callback", cb: cb, data: data }));
     }
@@ -105,7 +143,8 @@ let handler = {
             let i = l - 1;
           
             for (; i >= 0; i--) {
-                if (this.connections[epii_id].ws[i].epii_servers.includes(name)) {
+             
+                if ( (name===null) || this.connections[epii_id].ws[i].epii_servers.includes(name)) {
                     out.push(this.connections[epii_id].ws[i]);
                 }
             }

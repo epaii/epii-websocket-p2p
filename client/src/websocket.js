@@ -10,6 +10,7 @@ class epii_websocket {
         this.__on_error =null;
         this._start();
         this._close_by_self = false;
+        this.onUserAvailable_cbs ={};
     }
     _pushcb(cb) {
         if (!cb) return -1;
@@ -34,16 +35,31 @@ class epii_websocket {
               this._start();
         }
         this.ws.onopen = () => {
-            this.send({ do: "login", id: this.epii_id, unique:this.epii_info["unique"]?1:0,info: this.epii_info,cb:this._pushcb((data)=>{
-                if(data.code-1==0){
-                     this.is_ready = true;
-                     this.ready_callbacks.forEach(cb => cb());
-                }else{
-                    if(this.__on_error) this.__on_error({msg:"it is has exist username "+this.epii_id+" "}) ;  
-                }
-               
-            }) });
-           
+ 
+            let login = ()=>{
+                this.send({ do: "login", id: this.epii_id, unique:this.epii_info["unique"]?1:0,info: this.epii_info,cb:this._pushcb((data)=>{
+                    if(data.code-1==0){
+                         this.is_ready = true;
+                         this.ready_callbacks.forEach(cb => cb());
+                    }else{
+                        if(this.__on_error) this.__on_error({msg:"it is has exist username "+this.epii_id+" "}) ;  
+                    }
+                   
+                }) },true);
+            }
+            if(this.epii_info.hasOwnProperty("__unique__") && ( this.epii_info.__unique__===1 ) ){
+                this.ping(this.epii_id,(ret)=>{
+                   if(ret.code-1==0)
+                   {
+                      if(this.__on_error) this.__on_error({msg:"exist id "+this.epii_id})      ; 
+                   }else{
+                    login();
+                   }
+                })   
+           }else{
+               login();
+           }
+ 
         };
         this.ws.onmessage = (e) => {
             try {
@@ -83,6 +99,16 @@ class epii_websocket {
               });
         }
     }
+
+    onUserAvailable(userid,cb){
+        if(!this.onUserAvailable_cbs[userid])
+        {
+            this.onUserAvailable_cbs[userid] = [];
+        }
+        this.onUserAvailable_cbs[userid].push(cb);
+        this.send({ do: "onUserAvailable", toid: userid ,id:this.epii_id});
+    }
+    
     regServer(name, handler) {
         this.epii_servers[name] = handler;
         this.send({ do: "regServer", name: name });
@@ -117,8 +143,23 @@ class epii_websocket {
             this.cbs[data.cb](data.data);
         }
     }
-    send(data) {
-        this.ws.send(JSON.stringify(data))
+    __onUserAvailable(data){
+        if(this.onUserAvailable_cbs[data.id])
+        {
+            delete data.do;
+             this.onUserAvailable_cbs[data.id].forEach(cb=>cb(data));
+        }
+
+    }
+
+    send(data,noReady) {
+        if(noReady){
+            this.ws.send(JSON.stringify(data))
+        }else 
+        this.ready(()=>{
+            this.ws.send(JSON.stringify(data))
+        });
+        
     }
     isReady() {
         return this.is_ready;
