@@ -6,6 +6,7 @@
         var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_2", {
             unique:1,
             name: "李四"
+            
         });
 
         test_server.ready(()=>{
@@ -15,8 +16,8 @@
         test_server.onError(function(data){
             alert(JSON.stringify(data))
         });
-        test_server.onUserAvailable("user_1",(data)=>{
-            console.log(data)
+        test_server.onUserAvailable("user_1",()=>{
+            console.log()
         })
         function ping(){
             test_server.ping("user_1", function (ret) {

@@ -11,12 +11,29 @@ class epii_websocket {
         this._start();
         this._close_by_self = false;
         this.onUserAvailable_cbs ={};
+        this.heart_rate_runing = false;
+        if(info.heart_rate){
+            this.heart_rate = info.heart_rate;
+        }else{
+            this.heart_rate = 30000;
+        }
     }
     _pushcb(cb) {
         if (!cb) return -1;
         let l = this.cbs.length;
         this.cbs.push(cb);
         return l;
+    }
+    _heart_rate(){
+        if(!this.heart_rate_runing){
+            this.heart_rate_runing = true;
+            setInterval(() => {
+                if(this.is_ready){
+                    
+                    this.ws.send(JSON.stringify({hr:1}))
+                }
+            }, this.heart_rate);
+        }
     }
     _start() {
         
@@ -27,7 +44,7 @@ class epii_websocket {
         }else if((typeof window === "object") && window.WebSocket){
             this.ws = new WebSocket(this.url);   
         }else if(typeof WebSocket === "undefined"){
-           this.ws =  new  (require("ws"))(this.url); 
+            this.ws =  new  (require("ws"))(this.url); 
         }
  
         this.ws.onclose = (e) => {
@@ -41,6 +58,8 @@ class epii_websocket {
                     if(data.code-1==0){
                          this.is_ready = true;
                          this.ready_callbacks.forEach(cb => cb());
+                         //增加心跳，否则总是自动断线
+                         this._heart_rate();
                     }else{
                         if(this.__on_error) this.__on_error({msg:"it is has exist username "+this.epii_id+" "}) ;  
                     }
