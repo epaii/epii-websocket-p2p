@@ -1,7 +1,6 @@
 
 function wrapPromise(fun) {
     let outfun = fun;
-    let outRet = null;
     if (!fun) {
         let _ok = null;
         outfun = function (ret) {
@@ -13,7 +12,7 @@ function wrapPromise(fun) {
             _ok = ok;
         })]
     } else {
-        return [outRet, null];
+        return [outfun, null];
     }
 }
 function getArgsNum(aaa) {
@@ -154,8 +153,13 @@ class epii_websocket {
         this.epii_servers[name] = handler;
         this.send({ do: "regServer", name: name });
     }
-    callServer(id, name, data, cb) {
-        this.send({ do: "callServer", id: id, name: name, data: data, cb: this._pushcb(cb) });
+    callServer(id, name, data, cb=null) {
+        const [_cb,ret] =wrapPromise(cb);
+        this.send({ do: "callServer", id: id, name: name, data: data, cb: this._pushcb(_cb) });
+        if(ret)
+        {
+            return ret;
+        }
     }
     sendTo(id, name, data, cb) {
         this.send({ do: "callServer", id: id, name: name, more: 1, data: data, cb: this._pushcb(cb) });
