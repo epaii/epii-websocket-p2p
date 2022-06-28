@@ -156,16 +156,23 @@ class epii_websocket {
     callServer(id, name, data, cb=null) {
         const [_cb,ret] =wrapPromise(cb);
         this.send({ do: "callServer", id: id, name: name, data: data, cb: this._pushcb(_cb) });
-        if(ret)
-        {
+        if(ret){
             return ret;
         }
     }
-    sendTo(id, name, data, cb) {
-        this.send({ do: "callServer", id: id, name: name, more: 1, data: data, cb: this._pushcb(cb) });
+    sendTo(id, name, data, cb=null) {
+        const [_cb,ret] =wrapPromise(cb);
+        this.send({ do: "callServer", id: id, name: name, more: 1, data: data, cb: this._pushcb(_cb) });
+        if(ret){
+            return ret;
+        }
     }
-    ping(id, cb) {
-        this.callServer(id, "__ping", { __ping: 1 }, cb)
+    ping(id, cb=null) {
+        const [_cb,ret] =wrapPromise(cb);
+        this.callServer(id, "__ping", { __ping: 1 }, _cb)
+        if(ret){
+            return ret;
+        }
     }
     exit() {
         this._close_by_self = true;
@@ -174,9 +181,9 @@ class epii_websocket {
     close() {
         this.exit();
     }
-    __callServer(data) {
+   async __callServer(data) {
         if (this.epii_servers.hasOwnProperty(data.name)) {
-            function onResult(ret) {
+            let  onResult =(ret)=>{
                 if (data.cb - 1 != -2) {
                     this.send({ do: "reponseCall", connect: data.connect, data: ret, cb: data.cb });
                 }
@@ -186,7 +193,8 @@ class epii_websocket {
             if (getArgsNum(f) == 2) {
                f(req, onResult)
             } else {
-                onResult(f(req))
+
+                onResult( await f(req))
             }
 
         }

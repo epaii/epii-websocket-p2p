@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<body>
+    <script src="../dist/epii-websocket-p2p.js"></script>
+    <script>
+        var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_1", {
+            unique: 1,
+            name: "张三"
+        });
+
+
+        function sleep(timeout) {
+            return new Promise(ok => {
+                setTimeout(() => {
+                    ok();
+                }, timeout);
+            })
+        }
+
+        test_server.ready(function () {
+            test_server.regServer("server1", async function (data) {
+                console.log(data);
+                console.log("isme")
+                await sleep(5000);
+                return {
+                    "code": "woshoudaol",
+                    "a": 3,
+                    data:data
+                }
+            })
+
+            test_server.regServer("fangshenfenzheng", function (data, callback) {
+                alert("请放身份证")
+
+                callback({
+                    "idcard": Math.random()
+                })
+
+
+            })
+            var file_string = [];
+            var upload_size = [];
+            test_server.regServer("uploadfilestart", function (data, callback) {
+                file_string.push("");
+                upload_size.push(data.data.size);
+                callback({
+                    "fileId": file_string.length - 1
+                })
+            })
+            test_server.regServer("uploadfileing", function (data, callback) {
+                file_string[data.data.id] = file_string[data.data.id] + data.data.body;
+                var baifenbi = file_string[data.data.id].length / upload_size[data.data.id];
+                console.log(baifenbi)
+                callback({
+                    "fileId": data.data.id,
+                    "size": file_string[data.data.id].length,
+                    "progress": baifenbi
+                })
+            })
+            test_server.regServer("uploadfileend", function (data, callback) {
+                console.log(file_string[data.data.id].length);
+                callback({
+                    "fileId": data.data.id,
+                    "size": file_string[data.data.id].length
+                })
+                // const blob = new Blob([file_string[data.data.id]], {
+                //     type: "image/jpeg"
+                // })
+
+                const a = document.createElement("a")
+                a.href = file_string[data.data.id]; // URL.createObjectURL(blob)
+                a.download = "fileName" // 这里填保存成的文件名
+                a.click()
+                URL.revokeObjectURL(a.href)
+                a.remove();
+            })
+        });
+    </script>
+
+</body>
+
+</html>
