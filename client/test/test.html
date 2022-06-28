@@ -3,8 +3,13 @@
     let aaa = function () {
 
     }
-    let ddd = /\(\s*([\s\S]*?)\s*\)/.exec(aaa)[1].split(/\s*,\s*/);
-    console.log(ddd)
+    function getArgsNum(aaa) {
+        const args = /\(\s*([\s\S]*?)\s*\)/.exec(aaa)[1];
+        if (args.length == 0) return 0;
+        return args.split(/\s*,\s*/).length;
+    }
+
+
 </script>
 
 </html>

@@ -16,7 +16,11 @@ function wrapPromise(fun) {
         return [outRet, null];
     }
 }
-
+function getArgsNum(aaa) {
+    const args = /\(\s*([\s\S]*?)\s*\)/.exec(aaa)[1];
+    if (args.length == 0) return 0;
+    return args.split(/\s*,\s*/).length;
+}
 class epii_websocket {
     constructor(url, epii_id, info = {}) {
         this.ready_callbacks = [];
@@ -168,11 +172,19 @@ class epii_websocket {
     }
     __callServer(data) {
         if (this.epii_servers.hasOwnProperty(data.name)) {
-            this.epii_servers[data.name]({ data: data.data, client: data.client }, (ret) => {
+            function onResult(ret) {
                 if (data.cb - 1 != -2) {
                     this.send({ do: "reponseCall", connect: data.connect, data: ret, cb: data.cb });
                 }
-            })
+            }
+            const f = this.epii_servers[data.name];
+            const req = { data: data.data, client: data.client };
+            if (getArgsNum(f) == 2) {
+               f(req, onResult)
+            } else {
+                onResult(f(req))
+            }
+
         }
     }
     __callback(data) {
