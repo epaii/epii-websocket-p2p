@@ -1,0 +1,10 @@
+@url=http://127.0.0.1:8891/test
+@header=Content-Type:application/x-www-form-urlencoded
+
+GET {{url}}?ddd=10&asdfaf=100 HTTP/1.1
+
+###
+POST {{url}} HTTP/1.1
+{{header}}
+
+s=10&g=30

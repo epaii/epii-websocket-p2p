@@ -153,24 +153,24 @@ class epii_websocket {
         this.epii_servers[name] = handler;
         this.send({ do: "regServer", name: name });
     }
-    callServer(id, name, data, cb=null) {
-        const [_cb,ret] =wrapPromise(cb);
+    callServer(id, name, data, cb = null) {
+        const [_cb, ret] = wrapPromise(cb);
         this.send({ do: "callServer", id: id, name: name, data: data, cb: this._pushcb(_cb) });
-        if(ret){
+        if (ret) {
             return ret;
         }
     }
-    sendTo(id, name, data, cb=null) {
-        const [_cb,ret] =wrapPromise(cb);
+    sendTo(id, name, data, cb = null) {
+        const [_cb, ret] = wrapPromise(cb);
         this.send({ do: "callServer", id: id, name: name, more: 1, data: data, cb: this._pushcb(_cb) });
-        if(ret){
+        if (ret) {
             return ret;
         }
     }
-    ping(id, cb=null) {
-        const [_cb,ret] =wrapPromise(cb);
+    ping(id, cb = null) {
+        const [_cb, ret] = wrapPromise(cb);
         this.callServer(id, "__ping", { __ping: 1 }, _cb)
-        if(ret){
+        if (ret) {
             return ret;
         }
     }
@@ -181,9 +181,9 @@ class epii_websocket {
     close() {
         this.exit();
     }
-   async __callServer(data) {
+    async __callServer(data) {
         if (this.epii_servers.hasOwnProperty(data.name)) {
-            let  onResult =(ret)=>{
+            let onResult = (ret) => {
                 if (data.cb - 1 != -2) {
                     this.send({ do: "reponseCall", connect: data.connect, data: ret, cb: data.cb });
                 }
@@ -191,17 +191,21 @@ class epii_websocket {
             const f = this.epii_servers[data.name];
             const req = { data: data.data, client: data.client };
             if (getArgsNum(f) == 2) {
-               f(req, onResult)
+                f(req, onResult)
             } else {
 
-                onResult( await f(req))
+                onResult(await f(req))
             }
 
         }
     }
     __callback(data) {
         if (this.cbs.hasOwnProperty(data.cb)) {
-            this.cbs[data.cb](data.data);
+            if (data.data && data.data.$error_code && (data.$error_code - 0 == 0)) {
+                this.cbs[data.cb](null, data.data);
+            } else {
+                this.cbs[data.cb](data.data, null);
+            }
         }
     }
     __onUserAvailable(data) {

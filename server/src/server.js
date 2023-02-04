@@ -9,13 +9,15 @@ Array.prototype.remove = function (val) {
 let connections = [];
 let handler = {
     connections: {},
-    onUserAvailable_cbs:{},
+    httpReqs: [],
+    httpCallServerCount: 0,
+    onUserAvailable_cbs: {},
     login(ws, data) {
         if (!this.connections.hasOwnProperty(data.id)) {
             this.connections[data.id] = { id: data.id, info: data.info, ws: [] };
         }
-        if(data.hasOwnProperty("unique") && (data.unique-1===0)){
-            if(this.connections[data.id].ws.length > 0){
+        if (data.hasOwnProperty("unique") && (data.unique - 1 === 0)) {
+            if (this.connections[data.id].ws.length > 0) {
                 this._callback(ws, data.cb, { code: 0 })
                 return;
             }
@@ -26,7 +28,7 @@ let handler = {
             ws.epii_index = this.connections[data.id].ws.length;
             this.connections[data.id].ws.push(ws);
         }
-        if(data.hasOwnProperty("cb"))
+        if (data.hasOwnProperty("cb"))
             this._callback(ws, data.cb, { code: 1 })
 
         this.__onUserAvailable(data.id);
@@ -45,7 +47,49 @@ let handler = {
         this.__onUserAvailable(ws.epii_id);
 
     },
+    httpNotice(id, server_name, data = {}) {
+        if (!(id && server_name)) {
+            throw new Error("参数格式错误")
+        }
+        return this.callServer(null, {
+            id,
+            name: server_name,
+            data, more: 1,
+            cb: -1
+        })
+    },
+    httpPing(id) {
+        return this.notice(id, "__ping");
+    },
+    httpCallServer(id, server_name,data) {
+        if (!(id && server_name)) {
+            throw new Error("参数格式错误")
+        }
+        return new Promise( (resolve)=> {
+            this.httpCallServerCount++;
+            if (this.httpCallServerCount - 0 > 1000000000) {
+                this.httpCallServerCount = 0;
+            }
+            let cnum = this.httpCallServerCount;
+            this.httpReqs[cnum] = resolve;
+            return this.callServer({
+                epii_connection_index: -2,
+            }, {
+                id,
+                name: server_name,
+                data,
+                cb: cnum
+            })
+        })
+
+    },
     callServer(ws, data) {
+        if (ws === null) {
+            ws = {
+                epii_connection_index: -1,
+                more: 1
+            }
+        }
 
         if (data.hasOwnProperty("id") && data.hasOwnProperty("name")) {
 
@@ -54,38 +98,60 @@ let handler = {
             let ping = (server_name == "__ping");
             if (ping) {
                 let ok = this.connections.hasOwnProperty(id) && (this.connections[id].ws.length > 0);
-                this._callback(ws, data.cb, { code: ok ? 1 : 0 })
-                return;
+                return this._callback(ws, data.cb, { code: ok ? 1 : 0 })
+
             }
-             
+
             let towses = this._findWsFormServer(id, server_name);
-           
+
             if (data.hasOwnProperty("more") && (data.more - 1 === 0)) {
                 towses.forEach(tows => {
                     if (tows && tows.epii_is_ok) {
-                        let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb:-1});
+                        let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb: -1 });
                         tows.send(string);
                     }
                 })
-                this._callback(ws, data.cb, {num:towses.length});
-                return;
+                return this._callback(ws, data.cb, { num: towses.length });
             }
             let tows = towses[0];
             if (tows && tows.epii_is_ok) {
                 let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb: data.cb });
                 tows.send(string);
+            }else{
+                this.reponseCall(null,{
+                    connect:ws.epii_connection_index,
+                    cb:data.cb,
+                    data:{
+                        $error_code:-100,
+                        $error_msg:"server is not able"
+                    }
+                });
             }
+            return true;
 
 
         }
     },
     reponseCall(ws, data) {
-        if (data.hasOwnProperty("connect") && data.hasOwnProperty("cb") && connections.hasOwnProperty(data["connect"])) {
-            let tows = connections[data["connect"]];
+       
+        if (data.hasOwnProperty("connect") && data.hasOwnProperty("cb")) {
+             if(data.data){
+                data.data.$error_code =0;
+             }
+            if (connections.hasOwnProperty(data["connect"])) {
 
-            if (tows && tows.epii_is_ok) {
-                this._callback(tows, data.cb, data.data);
+                let tows = connections[data["connect"]];
+                if (tows && tows.epii_is_ok) {
+                   
+                    this._callback(tows, data.cb, data.data);
+                }
+            } else if (data["connect"] - 2 === -4) {
+                if (this.httpReqs[data["cb"] - 0]) {
+                    this.httpReqs[data["cb"] - 0](data.data);
+                    delete this.httpReqs[data["cb"] - 0];
+                }
             }
+
         }
     },
     regServer(ws, data) {
@@ -98,41 +164,44 @@ let handler = {
     showinfo() {
         // console.log(this.connections);
     },
-    onUserAvailable(ws,data){
-        if(!this.onUserAvailable_cbs[data.toid]){
+    onUserAvailable(ws, data) {
+        if (!this.onUserAvailable_cbs[data.toid]) {
             this.onUserAvailable_cbs[data.toid] = [];
         }
-        if(!this.onUserAvailable_cbs[data.toid].includes(data.id+"")){
-            this.onUserAvailable_cbs[data.toid].push(data.id+"")
+        if (!this.onUserAvailable_cbs[data.toid].includes(data.id + "")) {
+            this.onUserAvailable_cbs[data.toid].push(data.id + "")
         }
         if (this.connections.hasOwnProperty(data.toid) && (this.connections[data.toid].ws.length > 0)) {
-            let string = JSON.stringify({ do: "__onUserAvailable", id: data.toid, code:1  });
+            let string = JSON.stringify({ do: "__onUserAvailable", id: data.toid, code: 1 });
             ws.send(string);
         }
     },
-    __onUserAvailable(epii_id){
-        if(!this.onUserAvailable_cbs[epii_id]) return;
+    __onUserAvailable(epii_id) {
+        if (!this.onUserAvailable_cbs[epii_id]) return;
 
         let code = -1;
-        if (this.connections.hasOwnProperty(epii_id) && (this.connections[epii_id].ws.length === 1)){
+        if (this.connections.hasOwnProperty(epii_id) && (this.connections[epii_id].ws.length === 1)) {
             code = 1;
-        }else if(!this.connections[epii_id]){
-            code=0;
+        } else if (!this.connections[epii_id]) {
+            code = 0;
         }
-        if(code!==-1){
-          this.onUserAvailable_cbs[epii_id].forEach( (name)=>{
-                let towses = this._findWsFormServer(name,null);
+        if (code !== -1) {
+            this.onUserAvailable_cbs[epii_id].forEach((name) => {
+                let towses = this._findWsFormServer(name, null);
                 towses.forEach(tows => {
                     if (tows && tows.epii_is_ok) {
-                        let string = JSON.stringify({ do: "__onUserAvailable", id: epii_id, code:code});
+                        let string = JSON.stringify({ do: "__onUserAvailable", id: epii_id, code: code });
                         tows.send(string);
                     }
                 })
-          });
+            });
         }
     },
 
     _callback(ws, cb, data) {
+        if (!ws) return data;
+        if (ws.epii_connection_index - 1 == -2) return data;
+
         ws.send(JSON.stringify({ do: "__callback", cb: cb, data: data }));
     }
     ,
@@ -141,10 +210,10 @@ let handler = {
         if (this.connections.hasOwnProperty(epii_id) && (this.connections[epii_id].ws.length > 0)) {
             let l = this.connections[epii_id].ws.length;
             let i = l - 1;
-          
+
             for (; i >= 0; i--) {
-             
-                if ( (name===null) || this.connections[epii_id].ws[i].epii_servers.includes(name)) {
+
+                if ((name === null) || this.connections[epii_id].ws[i].epii_servers.includes(name)) {
                     out.push(this.connections[epii_id].ws[i]);
                 }
             }
@@ -186,5 +255,6 @@ function start(options) {
 
 
 module.exports = {
-    start: start
+    start: start,
+    handler: handler
 };
