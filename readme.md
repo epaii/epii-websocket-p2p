@@ -31,3 +31,13 @@
 
     </script>
 ```
+
+
+## http call server
+
+
+-- http://127.0.0.1:4897/ping?id=
+
+-- http://127.0.0.1:4897/notice?id=&server_name=&name=aaa&age=11
+
+-- http://127.0.0.1:4897/callServer?id=&server_name=&name=aaa&age=11
