@@ -59,7 +59,7 @@ let handler = {
         })
     },
     httpPing(id) {
-        return this.notice(id, "__ping");
+        return this.httpNotice(id, "__ping");
     },
     httpCallServer(id, server_name,data) {
         if (!(id && server_name)) {
