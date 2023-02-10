@@ -102,7 +102,16 @@ let handler = {
 
             }
 
+
+
             let towses = this._findWsFormServer(id, server_name);
+
+            let checkServer = (server_name == "__check_server");
+            if (checkServer) {
+                let ok = towses.length > 0;
+                return this._callback(ws, data.cb, { code: ok ? 1 : 0 })
+
+            }
 
             if (data.hasOwnProperty("more") && (data.more - 1 === 0)) {
                 towses.forEach(tows => {
@@ -171,10 +180,10 @@ let handler = {
         if (!this.onUserAvailable_cbs[data.toid].includes(data.id + "")) {
             this.onUserAvailable_cbs[data.toid].push(data.id + "")
         }
-        if (this.connections.hasOwnProperty(data.toid) && (this.connections[data.toid].ws.length > 0)) {
-            let string = JSON.stringify({ do: "__onUserAvailable", id: data.toid, code: 1 });
-            ws.send(string);
-        }
+
+        let string = JSON.stringify({ do: "__onUserAvailable", id: data.toid, code: this.connections.hasOwnProperty(data.toid) && (this.connections[data.toid].ws.length > 0) ? 1 : 0 });
+        ws.send(string);
+
     },
     __onUserAvailable(epii_id) {
         if (!this.onUserAvailable_cbs[epii_id]) return;
