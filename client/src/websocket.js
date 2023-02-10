@@ -160,6 +160,13 @@ class epii_websocket {
             return ret;
         }
     }
+    waitForServer(id, name,cb = null){
+        const [_cb, ret] = wrapPromise(cb);
+        this.send({ do: "callServer", id: id, name: name, more: 1, data: data, cb: this._pushcb(_cb) });
+        if (ret) {
+            return ret;
+        }
+    }
     sendTo(id, name, data, cb = null) {
         const [_cb, ret] = wrapPromise(cb);
         this.send({ do: "callServer", id: id, name: name, more: 1, data: data, cb: this._pushcb(_cb) });
@@ -185,6 +192,13 @@ class epii_websocket {
         if (this.epii_servers.hasOwnProperty(data.name)) {
             let onResult = (ret) => {
                 if (data.cb - 1 != -2) {
+                    if (ret instanceof Error) {
+                        ret = {
+                            $error_code: -200,
+                            $error_msg: ret.message
+                        }
+                        console.log(ret);
+                    }
                     this.send({ do: "reponseCall", connect: data.connect, data: ret, cb: data.cb });
                 }
             }
@@ -194,6 +208,7 @@ class epii_websocket {
                 try {
                     await f(req, onResult)
                 } catch (error) {
+
                     onResult(error)
                 }
 
@@ -201,7 +216,6 @@ class epii_websocket {
 
                 try {
                     onResult(await f(req))
-
                 } catch (error) {
                     onResult(error)
                 }
@@ -211,10 +225,10 @@ class epii_websocket {
     }
     __callback(data) {
         if (this.cbs.hasOwnProperty(data.cb)) {
-            if (data.data && data.data.$error_code && (data.$error_code - 0 == 0)) {
-                this.cbs[data.cb](null, data.data);
-            } else {
+            if (data.data && data.data.$error_code && (data.data.$error_code - 0 !== 0)) {
                 this.cbs[data.cb](data.data, null);
+            } else {
+                this.cbs[data.cb](null, data.data);
             }
         }
     }

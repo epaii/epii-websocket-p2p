@@ -83,6 +83,15 @@ let handler = {
         })
 
     },
+    checkServer(ws, data) {
+        if (data.hasOwnProperty("id") && data.hasOwnProperty("name")) {
+            let id = data.id;
+            let server_name = data.name;
+            let towses = this._findWsFormServer(id, server_name);
+            let ok = towses.length > 0;
+            return this._callback(ws, data.cb, { code: ok ? 1 : 0 })
+        }
+    },
     callServer(ws, data) {
         if (ws === null) {
             ws = {
@@ -106,12 +115,7 @@ let handler = {
 
             let towses = this._findWsFormServer(id, server_name);
 
-            let checkServer = (server_name == "__check_server");
-            if (checkServer) {
-                let ok = towses.length > 0;
-                return this._callback(ws, data.cb, { code: ok ? 1 : 0 })
 
-            }
 
             if (data.hasOwnProperty("more") && (data.more - 1 === 0)) {
                 towses.forEach(tows => {
