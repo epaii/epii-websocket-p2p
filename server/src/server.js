@@ -61,11 +61,11 @@ let handler = {
     httpPing(id) {
         return this.httpNotice(id, "__ping");
     },
-    httpCallServer(id, server_name,data) {
+    httpCallServer(id, server_name, data) {
         if (!(id && server_name)) {
             throw new Error("参数格式错误")
         }
-        return new Promise( (resolve)=> {
+        return new Promise((resolve) => {
             this.httpCallServerCount++;
             if (this.httpCallServerCount - 0 > 1000000000) {
                 this.httpCallServerCount = 0;
@@ -117,13 +117,13 @@ let handler = {
             if (tows && tows.epii_is_ok) {
                 let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb: data.cb });
                 tows.send(string);
-            }else{
-                this.reponseCall(null,{
-                    connect:ws.epii_connection_index,
-                    cb:data.cb,
-                    data:{
-                        $error_code:-100,
-                        $error_msg:"server is not able"
+            } else {
+                this.reponseCall(null, {
+                    connect: ws.epii_connection_index,
+                    cb: data.cb,
+                    data: {
+                        $error_code: -100,
+                        $error_msg: "server is not able"
                     }
                 });
             }
@@ -133,16 +133,16 @@ let handler = {
         }
     },
     reponseCall(ws, data) {
-       
+
         if (data.hasOwnProperty("connect") && data.hasOwnProperty("cb")) {
-             if(data.data){
-                data.data.$error_code =0;
-             }
+            if (data.data && !data.data.hasOwnProperty("$error_code")) {
+                data.data.$error_code = 0;
+            }
             if (connections.hasOwnProperty(data["connect"])) {
 
                 let tows = connections[data["connect"]];
                 if (tows && tows.epii_is_ok) {
-                   
+
                     this._callback(tows, data.cb, data.data);
                 }
             } else if (data["connect"] - 2 === -4) {

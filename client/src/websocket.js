@@ -191,10 +191,20 @@ class epii_websocket {
             const f = this.epii_servers[data.name];
             const req = { data: data.data, client: data.client };
             if (getArgsNum(f) == 2) {
-                f(req, onResult)
+                try {
+                    await f(req, onResult)
+                } catch (error) {
+                    onResult(error)
+                }
+
             } else {
 
-                onResult(await f(req))
+                try {
+                    onResult(await f(req))
+
+                } catch (error) {
+                    onResult(error)
+                }
             }
 
         }
