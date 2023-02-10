@@ -8,7 +8,10 @@
             name: "张三"
         });
       
-        test_server.ready(function () {
+        test_server.ready(async function () {
+
+           
+
             console.log("ready");
             test_server.regServer("server1", function (data, callback) {
                 console.log(data);

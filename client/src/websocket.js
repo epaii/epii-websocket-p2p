@@ -77,6 +77,7 @@ class epii_websocket {
             let login = () => {
                 this.send({
                     do: "login", id: this.epii_id, unique: this.epii_info["unique"] ? 1 : 0, info: this.epii_info, cb: this._pushcb((data) => {
+                        //console.log(data);
                         if (data.code - 1 == 0) {
                             this.is_ready = true;
                             this.ready_callbacks.forEach(cb => cb());
@@ -160,11 +161,21 @@ class epii_websocket {
             return ret;
         }
     }
-    waitForServer(id, name,cb = null){
-        const [_cb, ret] = wrapPromise(cb);
-        this.send({ do: "callServer", id: id, name: name, more: 1, data: data, cb: this._pushcb(_cb) });
-        if (ret) {
-            return ret;
+    async waitForServer(id, name, cb = null) {
+
+        let sleep = function (time) { return new Promise(r => setTimeout(r, time)) };
+        while (true) {
+            const [_cb, ret] = wrapPromise(null);
+            //console.log(ret);
+            this.send({ do: "checkServer", id: id, name: name, data: {}, cb: this._pushcb(_cb) });
+            let data = await ret;
+            if (data.code - 1 === 0) {
+                break;
+            }
+            await sleep(1000);
+        }
+        if (cb) {
+            cb();
         }
     }
     sendTo(id, name, data, cb = null) {
@@ -197,7 +208,7 @@ class epii_websocket {
                             $error_code: -200,
                             $error_msg: ret.message
                         }
-                        console.log(ret);
+                        //console.log(ret);
                     }
                     this.send({ do: "reponseCall", connect: data.connect, data: ret, cb: data.cb });
                 }
@@ -225,10 +236,11 @@ class epii_websocket {
     }
     __callback(data) {
         if (this.cbs.hasOwnProperty(data.cb)) {
+            //console.log(data);
             if (data.data && data.data.$error_code && (data.data.$error_code - 0 !== 0)) {
-                this.cbs[data.cb](data.data, null);
+                this.cbs[data.cb]( null,data.data);
             } else {
-                this.cbs[data.cb](null, data.data);
+                this.cbs[data.cb]( data.data,null);
             }
         }
     }
@@ -252,7 +264,7 @@ class epii_websocket {
     isReady() {
         return this.is_ready;
     }
-    ready(cb) {
+    ready(cb=null) {
         const [_cb, ret] = wrapPromise(cb);
         if (this.is_ready) {
             _cb();

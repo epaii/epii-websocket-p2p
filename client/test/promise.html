@@ -1,37 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
     <script src="../dist/epii-websocket-p2p.js"></script>
     <script>
         var test_server = new WebSocketP2P("ws://127.0.0.1:4897", "user_2", {
-            unique:1,
+            unique: 1,
             name: "xlx"
-            
+
         });
 
-        (async function(){
+        (async function () {
+            console.log("dddddssss");
+
             await test_server.ready();
-           let ping_ret =   await test_server.ping("user_1");
-           console.log(ping_ret);
+            console.log("ready");
+            let ping_ret = await test_server.ping("user_1");
+            await test_server.waitForServer("user_1","uploadfileend");
+            console.log("on upload end");
         })();
 
-      
-            
-        async function cb_promise(){
-            
+
+
+        async function cb_promise() {
+
             let res = await test_server.callServer("user_1", "server1", {
                 a: 1,
                 vd: 2
             });
-            console.log(res,'re');
+            console.log(res, 're');
         }
     </script>
     <button onclick="cb_promise()">cb promise</button>
 </body>
+
 </html>
