@@ -14,5 +14,5 @@ let c =  function (fun){
 }
 
 module.exports = async function () {
-    return App.createServer().route("/notice", c("httpNotice") ).route("/callserver", c("httpCallServer")).route("/ping", c("httpPing")).callback();
+    return App.createServer().route("/notice", c("httpNotice") ).route("/callserver", c("httpCallServer")).route("/ping", c("httpPing")).route("/killUser", c("httpKillUser")).callback();
 }

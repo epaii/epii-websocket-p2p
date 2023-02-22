@@ -39,10 +39,11 @@ let handler = {
         if (ws.hasOwnProperty("epii_id")) {
             if (this.connections.hasOwnProperty(ws.epii_id)) {
                 this.connections[ws.epii_id].ws.remove(ws);
+                if (this.connections[ws.epii_id].ws.length === 0) {
+                    delete this.connections[ws.epii_id];
+                }
             }
-            if (this.connections[ws.epii_id].ws.length === 0) {
-                delete this.connections[ws.epii_id];
-            }
+
         }
         this.__onUserAvailable(ws.epii_id);
 
@@ -57,6 +58,14 @@ let handler = {
             data, more: 1,
             cb: -1
         })
+    },
+    httpKillUser(id) {
+        let num = 0;
+        if (this.connections.hasOwnProperty(id)) {
+            num = this.connections[id].ws.length;
+            delete this.connections[id];
+        }
+        return num;
     },
     httpPing(id) {
         return this.httpNotice(id, "__ping");
