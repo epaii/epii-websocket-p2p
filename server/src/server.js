@@ -271,6 +271,9 @@ function start(options) {
             handler.logout(ws);
             handler.showinfo();
         });
+        ws.on('error', function () {
+             console.log("on error");
+        });
     })
 }
 

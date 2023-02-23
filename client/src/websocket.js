@@ -21,7 +21,7 @@ function getArgsNum(aaa) {
     return args.split(/\s*,\s*/).length;
 }
 class epii_websocket {
-    constructor(url, epii_id, info = {}) {
+    constructor(url, epii_id, info = {}, onLogin = null) {
         this.ready_callbacks = [];
         this.url = url;
         this.epii_id = epii_id;
@@ -29,7 +29,7 @@ class epii_websocket {
         this.epii_servers = {};
         this.cbs = [];
         this.__on_error = null;
-        this._start();
+
         this._close_by_self = false;
         this.onUserAvailable_cbs = {};
         this.heart_rate_runing = false;
@@ -38,6 +38,13 @@ class epii_websocket {
         } else {
             this.heart_rate = 30000;
         }
+        this.onLogin = onLogin;
+        setTimeout(() => {
+            this._start();
+        }, 100);
+    }
+    onLogin(fun) {
+        this.onLogin = fun;
     }
     _pushcb(cb) {
         if (!cb) return -1;
@@ -80,6 +87,7 @@ class epii_websocket {
                         //console.log(data);
                         if (data.code - 1 == 0) {
                             this.is_ready = true;
+                            if (this.onLogin) this.onLogin();
                             this.ready_callbacks.forEach(cb => cb());
                             //增加心跳，否则总是自动断线
                             this._heart_rate();
@@ -178,6 +186,15 @@ class epii_websocket {
             cb();
         }
     }
+
+    async checkServer(id, name) {
+        const [_cb, ret] = wrapPromise(null);
+        //console.log(ret);
+        this.send({ do: "checkServer", id: id, name: name, data: {}, cb: this._pushcb(_cb) });
+        let data = await ret;
+        return data.code - 1 === 0;
+    }
+
     sendTo(id, name, data, cb = null) {
         const [_cb, ret] = wrapPromise(cb);
         this.send({ do: "callServer", id: id, name: name, more: 1, data: data, cb: this._pushcb(_cb) });
@@ -238,9 +255,9 @@ class epii_websocket {
         if (this.cbs.hasOwnProperty(data.cb)) {
             //console.log(data);
             if (data.data && data.data.$error_code && (data.data.$error_code - 0 !== 0)) {
-                this.cbs[data.cb]( null,data.data);
+                this.cbs[data.cb](null, data.data);
             } else {
-                this.cbs[data.cb]( data.data,null);
+                this.cbs[data.cb](data.data, null);
             }
         }
     }
@@ -264,7 +281,7 @@ class epii_websocket {
     isReady() {
         return this.is_ready;
     }
-    ready(cb=null) {
+    ready(cb = null) {
         const [_cb, ret] = wrapPromise(cb);
         if (this.is_ready) {
             _cb();
