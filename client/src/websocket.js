@@ -38,6 +38,7 @@ class epii_websocket {
         } else {
             this.heart_rate = 30000;
         }
+        this.heart_rate_thread = null;
         this.onLogin = onLogin;
         setTimeout(() => {
             this._start();
@@ -55,9 +56,8 @@ class epii_websocket {
     _heart_rate() {
         if (!this.heart_rate_runing) {
             this.heart_rate_runing = true;
-            setInterval(() => {
+            this.heart_rate_thread = setInterval(() => {
                 if (this.is_ready) {
-
                     this.ws.send(JSON.stringify({ hr: 1 }))
                 }
             }, this.heart_rate);
@@ -65,8 +65,12 @@ class epii_websocket {
     }
     _start() {
 
+       // console.log("start start");
         this.is_ready = false;
         this._close_by_self = false;
+        if (this.heart_rate_thread) {
+            clearInterval(this.heart_rate_thread);
+        }
         if (typeof uni != "undefined") {
             this.ws = {};
         } else if ((typeof window === "object") && window.WebSocket) {
@@ -76,14 +80,20 @@ class epii_websocket {
         }
 
         this.ws.onclose = (e) => {
-            if (!this._close_by_self)
-                this._start();
+            if (!this._close_by_self) {
+                if (!this._close_by_self) {
+                    setTimeout(() => {
+                        this._start();
+                    }, 2000)
+                }
+
+            }
         }
         this.ws.onopen = () => {
 
             let login = () => {
                 this.send({
-                    do: "login", id: this.epii_id, unique: this.epii_info["unique"] ? 1 : 0, info: this.epii_info, cb: this._pushcb((data) => {
+                    do: "login", id: this.epii_id, unique: this.epii_info["__unique__"]-1===0 ? 1 : 0, info: this.epii_info, cb: this._pushcb((data) => {
                         //console.log(data);
                         if (data.code - 1 == 0) {
                             this.is_ready = true;
@@ -98,17 +108,14 @@ class epii_websocket {
                     })
                 }, true);
             }
-            if (this.epii_info.hasOwnProperty("__unique__") && (this.epii_info.__unique__ === 1)) {
-                this.ping(this.epii_id, (ret) => {
-                    if (ret.code - 1 == 0) {
-                        if (this.__on_error) this.__on_error({ msg: "exist id " + this.epii_id });
-                    } else {
-                        login();
-                    }
-                })
-            } else {
-                login();
+
+            if(this.epii_info["unique"]){
+                this.epii_info["__unique__"] = this.epii_info["unique"];
             }
+           
+
+           login();
+            
 
         };
         this.ws.onmessage = (e) => {
@@ -126,11 +133,7 @@ class epii_websocket {
 
         }
         this.ws.onerror = (e) => {
-            if (!this._close_by_self)
-                setTimeout(() => {
-                    this._start();
-                }, 2000)
-
+           // console.log("onerror");
             if (this.__on_error) this.__on_error(e);
         }
         if (typeof uni != "undefined") {
