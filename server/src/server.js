@@ -13,6 +13,8 @@ let handler = {
     httpCallServerCount: 0,
     onUserAvailable_cbs: {},
     login(ws, data) {
+        if (!data.info) data.info = {};
+        data.info.epii_id = data.id;
         if (!this.connections.hasOwnProperty(data.id)) {
             this.connections[data.id] = { id: data.id, info: data.info, ws: [] };
         }
@@ -129,7 +131,7 @@ let handler = {
             if (data.hasOwnProperty("more") && (data.more - 1 === 0)) {
                 towses.forEach(tows => {
                     if (tows && tows.epii_is_ok) {
-                        let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb: -1 });
+                        let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[ws.epii_id].info, connect: ws.epii_connection_index, cb: -1 });
                         tows.send(string);
                     }
                 })
@@ -137,7 +139,7 @@ let handler = {
             }
             let tows = towses[0];
             if (tows && tows.epii_is_ok) {
-                let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[id].info, connect: ws.epii_connection_index, cb: data.cb });
+                let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[ws.epii_id].info, connect: ws.epii_connection_index, cb: data.cb });
                 tows.send(string);
             } else {
                 this.reponseCall(null, {
@@ -272,7 +274,7 @@ function start(options) {
             handler.showinfo();
         });
         ws.on('error', function () {
-             console.log("on error");
+            console.log("on error");
         });
     })
 }
