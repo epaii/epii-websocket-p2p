@@ -107,7 +107,8 @@ let handler = {
         if (ws === null) {
             ws = {
                 epii_connection_index: -1,
-                more: 1
+                more: 1,
+                epii_id:-1
             }
         }
 
@@ -131,7 +132,7 @@ let handler = {
             if (data.hasOwnProperty("more") && (data.more - 1 === 0)) {
                 towses.forEach(tows => {
                     if (tows && tows.epii_is_ok) {
-                        let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[ws.epii_id].info, connect: ws.epii_connection_index, cb: -1 });
+                        let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client:  this.connections[ws.epii_id]?this.connections[ws.epii_id].info:{epii_id:"http"}, connect: ws.epii_connection_index, cb: -1 });
                         tows.send(string);
                     }
                 })
@@ -139,7 +140,7 @@ let handler = {
             }
             let tows = towses[0];
             if (tows && tows.epii_is_ok) {
-                let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[ws.epii_id].info, connect: ws.epii_connection_index, cb: data.cb });
+                let string = JSON.stringify({ do: "__callServer", name: server_name, data: data.data, client: this.connections[ws.epii_id]?this.connections[ws.epii_id].info:{epii_id:"http"}, connect: ws.epii_connection_index, cb: data.cb });
                 tows.send(string);
             } else {
                 this.reponseCall(null, {
