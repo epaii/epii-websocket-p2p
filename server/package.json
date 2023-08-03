@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "epii-tiny-app": "^1.0.1",
-    "ws": "^7.3.0"
+    "ws": "^7.4.6"
   }
 }
