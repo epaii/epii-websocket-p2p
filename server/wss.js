@@ -2,7 +2,7 @@
 const server = require("./src/server.js");
 
 const httpServ = require('https');
-const config = require(__dirname + "/config.json");
+const config =  require("./src/config.js")
 const fs = require("fs")
 const onRequest = require("./src/onRequest");
 // 创建request请求监听器

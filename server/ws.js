@@ -1,5 +1,5 @@
 const server = require("./src/server.js");
-const config = require(__dirname + "/config.json");
+const config = require("./src/config.js")
 const http = require("http");
 
 const onRequest = require("./src/onRequest");
@@ -12,4 +12,5 @@ const onRequest = require("./src/onRequest");
     server.start({
         server: app
     });
+    console.log("start at port " + config.port);
 })();

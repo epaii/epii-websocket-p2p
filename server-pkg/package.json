@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "pkg:win": "pkg . -t node14-win-x64  -o build/epii-websocket-server-win --public",
+    "pkg:mac": "pkg . -t node14-mac-x64  -o build/epii-websocket-server-mac --public",
+    "pkg:linux": "pkg . -t node14-linux-x64  -o build/epii-websocket-server-linux --public"
+
+
+  },
+  "bin": "../server/index.js",
+  "pkg": {
+    "scripts": [
+      "../server/**/*.js"
+    ],
+    "outputPath": "dist"
+  }
+}
